@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width" />
+    <title>Jubeatinfo Diff</title>
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" media="screen" />
+</head>
+<body>
+<div class="navbar">
+	<div class="fill navbar-inner">
+		<div class="container-fluid">
+			<ul class="nav">
+				<li class="active"><a id="menu-all">ALL</a></li>
+				<li><a id="menu-bsc">BSC</a></li>
+				<li><a id="menu-adv">ADV</a></li>
+				<li><a id="menu-ext">EXT</a></li>
+				<li><a id="menu-options">Options</a></li>
+			</ul>
+			<form class="navbar-search pull-left">
+				<input type="text" class="search-query span2" id="jbtinfoID" placeholder="jubeatinfo ID" />
+			</form>
+			<ul class="nav pull-right">
+				<a class="brand" href=".">Jubeatinfo Diff</a>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div class="container-fluid">
+	<div class="options">
+		<h2>Options <small>페이지 옵션</small></h2>
+		<div class="well">
+			<!--div class="row-fluid">
+				<div class="span3">
+					<h3>Fields</h3>
+					<p>페이지에 보일 내용을 정합니다</p>
+				</div>
+				<div class="span9">
+					<label class="checkbox"><input type="checkbox" name="score" />점수</label>
+					<label class="checkbox"><input type="checkbox" name="playcount" />플레이 횟수</label>
+					<label class="checkbox"><input type="checkbox" name="diff" />평균과의 차이</label>
+				</div>
+			</div-->
+
+			<div class="row-fluid">
+				<div class="span3">
+					<h3>Sort</h3>
+					<p>정렬방법을 정합니다</p>
+				</div>
+				<div class="span9">
+					<select name="filter-options">
+						<option value="level">레벨</option>
+						<option value="notes">노트 수</option>
+						<option value="score">점수</option>
+						<option value="playcount">플레이 횟수</option>
+						<option value="diff" selected>평균과의 차이</option>
+					</select>
+					<label class="radio"><input type="radio" value="asc" name="sort" checked />오름차순</label>
+					<label class="radio"><input type="radio" value="desc" name="sort" />내림차순</label>
+				</div>
+			</div>
+
+			<!--div class="row-fluid">
+				<div class="span3">
+					<h3>Limit</h3>
+					<p>보여 줄 개수를 한정합니다</p>
+				</div>
+				<div class="span9">
+					<label class="text"><input type="text" name="limit" /></label>
+				</div>
+			</div-->
+
+			<div class="row-fluid">
+				<div class="span3">&nbsp;</div>
+				<div class="span9">
+					<input type="button" class="btn btn-primary" name="apply" value="적용" />
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row-fluid" id="logs">
+	</div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script>
+var extractHash = function (global) {
+	var _params = location.search.substr(1).split("&"), _return_dict={};
+	for ( var i = 0; i < _params.length; ++i ) {
+		t = _params[i].split("=")
+		_return_dict[t[0]] = t[1]
+	}
+	global.params = _return_dict;
+
+	var _hash = location.hash;
+	if ( _hash)  {
+		global.user = String.prototype.slice.call(_hash, 1);
+	}
+};
+
+var options = new Array();
+options['level']	= {dataFields:["level"], dispName:"레벨"};
+options['notes']	= {dataFields:["notes"], dispName:"노트 수"};
+options['score']	= {dataFields:["data","score"], dispName:"점수"};
+options['diff']		= {dataFields:["data_diff","score"], dispName:"평균과의 차이"};
+options['playcount']= {dataFields:["data","play_count"], dispName:"플레이 횟수"};
+
+$.busy = false;
+$.infodiff = {};
+$.infodiff.score = new Array();
+$.infodiff.selectableOptions = options;
+$.infodiff.options = {sort:{field:"diff",order:'asc'},diff:'all'};
+$.infodiff.username = 'shonen.a';
+
+function doDisplayDiff(username) {
+	var dif = ["bsc", "adv", "ext"];
+	var data = $.infodiff.score[username];
+	var scores = data.scores;
+	var songs = [];
+
+	$('#logs').html('');
+
+	for( var i in scores ) {
+		var score = scores[i];
+
+		for( var d in dif ) {
+			var song = score[dif[d]];
+			song.title = score.title;
+			song.difficulty  = dif[d];
+			songs.push(song);
+		}
+	}
+
+	songs.sort(function(a, b) {
+		var opt = $.infodiff.selectableOptions[$.infodiff.options.sort.field].dataFields;
+		var cmp_a = a, cmp_b = b;
+		for( i in opt ) {
+			cmp_a = cmp_a[opt[i]];
+			cmp_b = cmp_b[opt[i]];
+		}
+		var res = cmp_a < cmp_b ? -1 : 1;
+		return res * ($.infodiff.options.sort.order == 'asc' ? 1 : -1);
+	});
+
+	var table = $('<table>').addClass('table');
+
+	var title = ['레벨', '곡명', '난이도', '#노트', '점수', '-평균', '플카'];
+	$('<tr>').html(title.map(function(elem){return '<th>'+elem+'</th>';}).join('')).appendTo(table);
+	for( var i in songs ) {
+		var song = songs[i];
+		if( !song.data.score ) continue;
+		var songdata = [
+			song.level,
+			song.title,
+			song.difficulty.toUpperCase(),
+			song.notes,
+			song.data.score,
+			song.data_diff.score,
+			song.data.play_count
+			];
+
+
+		$('<tr>').html(songdata.map(function(elem){return '<td>'+elem+'</td>';}).join(''))
+		         .addClass('dif-' + song.difficulty)
+		         .addClass('record')
+		         .appendTo(table);
+	}
+	$('<tr>').html(title.map(function(elem){return '<th>'+elem+'</th>';}).join('')).appendTo(table);
+	$('#logs').html(table);
+
+	changeDifficulty($.infodiff.options.diff);
+}
+
+function displayDiff(username) {
+	if( $.busy ) return;
+	$.busy = true;
+	var url = 'info.php';
+
+	if('undefined' == typeof username) {
+		username = 'shonen.a';
+	}
+
+	url += '?username=' + username;
+	location.hash = '#' + username;
+	$('#jbtinfoID').val(username);
+	
+	username = username.toLowerCase();
+	$.infodiff.username = username;
+
+	if( 'undefined' != typeof($.infodiff.score[username]) ) {
+		$.busy = false;
+		doDisplayDiff(username);
+		return;
+	}
+
+	$.get(url, function(data) {
+		$.busy = false;
+		$.infodiff.score[username] = data;
+		doDisplayDiff(username);
+	}, 'json');
+}
+
+function changeDifficulty(dif) {
+	activateMenu(dif);
+	filterDifficulty(dif);
+	$.infodiff.options.diff = dif;
+}
+
+function activateMenu(dif) {
+	$('.active').removeClass('active');
+	$('#menu-' + dif).parent().addClass('active');
+}
+
+function filterDifficulty(dif) {
+	if( dif == 'all' ) { 
+		$('.record').show();
+		return;
+	}
+	
+	$('.record').hide();
+	$('.record').filter('.dif-' + dif).show();
+}
+
+$(function() {
+	$('#jbtinfoID').keydown(function(evt) {
+		if( evt.which == 13 ) {
+			displayDiff($(this).val());
+		}
+	});
+
+	$('.options').hide();
+
+	extractHash(window);
+	displayDiff(window.user);
+
+	// click handler bind 
+	$('#menu-options').click(function(){$('.options').toggle();}).css('cursor', 'pointer');
+	$('#menu-all').click(function(){changeDifficulty('all');}).css('cursor', 'pointer');
+	$('#menu-bsc').click(function(){changeDifficulty('bsc');}).css('cursor', 'pointer');
+	$('#menu-adv').click(function(){changeDifficulty('adv');}).css('cursor', 'pointer');
+	$('#menu-ext').click(function(){changeDifficulty('ext');}).css('cursor', 'pointer');
+	$('input[name=apply]').click(function() {
+		$('.options').hide();
+		$.infodiff.options.sort.field = $('select[name=filter-options] option:selected').val();
+		$.infodiff.options.sort.order = $('input[name=sort]:checked').val();
+		displayDiff($.infodiff.username);
+	});
+});
+</script>
+</body>
+</html>
