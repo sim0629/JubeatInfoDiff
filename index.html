@@ -254,11 +254,12 @@ $(function() {
 	$('#menu-adv').click(function(){changeDifficulty('adv');}).css('cursor', 'pointer');
 	$('#menu-ext').click(function(){changeDifficulty('ext');}).css('cursor', 'pointer');
 	$('input[name=apply]').click(function() {
-		$('.options').slideUp();
-		$.infodiff.options.sort.field = $('select[name=filter-options] option:selected').val();
-		$.infodiff.options.sort.order = $('input[name=sort]:checked').val();
-		$.infodiff.options.limit = parseInt($('input[name=limit]').val());
-		displayDiff($.infodiff.username);
+		$('.options').slideToggle(function() {
+			$.infodiff.options.sort.field = $('select[name=filter-options] option:selected').val();
+			$.infodiff.options.sort.order = $('input[name=sort]:checked').val();
+			$.infodiff.options.limit = parseInt($('input[name=limit]').val());
+			displayDiff($.infodiff.username);
+		});
 	});
 });
 </script>
