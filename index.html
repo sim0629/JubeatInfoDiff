@@ -76,6 +76,16 @@
 			</div>
 
 			<div class="row-fluid">
+				<div class="span3">
+					<h3>Hide</h3>
+					<p>점수를 숨깁니다</p>
+				</div>
+				<div class="span9">
+					<label class="checkbox"><input type="checkbox" name="hide-exc" checked />엑설런트</label>
+				</div>
+			</div>
+
+			<div class="row-fluid">
 				<div class="span3">&nbsp;</div>
 				<div class="span9">
 					<input type="button" class="btn btn-primary" name="apply" value="적용" />
@@ -114,7 +124,7 @@ $.infodiff = {};
 $.infodiff.busy = false;
 $.infodiff.score = new Array();
 $.infodiff.selectableOptions = options;
-$.infodiff.options = {sort:{field:"diff",order:'asc'},diff:'all',limit:20};
+$.infodiff.options = {sort:{field:"diff",order:'asc'},diff:'all',limit:20,hide_exc:true};
 $.infodiff.username = 'shonen.a';
 
 function doDisplayDiff(username) {
@@ -131,6 +141,7 @@ function doDisplayDiff(username) {
 		for( var d in dif ) {
 			var song = score[dif[d]];
 			if( !song.data.score ) continue;
+			if( $.infodiff.options.hide_exc && song.data.score == 1000000 ) continue;
 			song.title = score.title;
 			song.difficulty  = dif[d];
 			songs.push(song);
@@ -258,6 +269,7 @@ $(function() {
 			$.infodiff.options.sort.field = $('select[name=filter-options] option:selected').val();
 			$.infodiff.options.sort.order = $('input[name=sort]:checked').val();
 			$.infodiff.options.limit = parseInt($('input[name=limit]').val());
+			$.infodiff.options.hide_exc = ($('input[name=hide-exc]:checked').length!=0);
 			displayDiff($.infodiff.username);
 		});
 	});
