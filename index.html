@@ -59,6 +59,7 @@
 						<option value="score">점수</option>
 						<option value="playcount">플레이 횟수</option>
 						<option value="diff" selected>평균과의 차이</option>
+						<option value="diffratio">평균과의 엑설런트까지의 점수 비율</option>
 					</select>
 					<label class="radio"><input type="radio" value="asc" name="sort" checked />오름차순</label>
 					<label class="radio"><input type="radio" value="desc" name="sort" />내림차순</label>
@@ -119,6 +120,7 @@ options['notes']	= {dataFields:["notes"], dispName:"노트 수"};
 options['score']	= {dataFields:["data","score"], dispName:"점수"};
 options['diff']		= {dataFields:["data_diff","score"], dispName:"평균과의 차이"};
 options['playcount']= {dataFields:["data","play_count"], dispName:"플레이 횟수"};
+options['diffratio']= {dataFields:["data_diff","score_to_excellent_ratio"], dispName:"평균과의 엑설런트까지의 점수 비율"};
 
 $.infodiff = {};
 $.infodiff.busy = false;
@@ -144,6 +146,11 @@ function doDisplayDiff(username) {
 			if( $.infodiff.options.hide_exc && song.data.score == 1000000 ) continue;
 			song.title = score.title;
 			song.difficulty  = dif[d];
+			if( song.data_vs.score == 1000000) { // very unlikely.
+				song.data_diff.score_to_excellent_ratio = (1000000 == song.data.score) ? 100. : 999999.;
+			} else {
+				song.data_diff.score_to_excellent_ratio = (1000000 - song.data.score) * 100. / (1000000 - song.data_vs.score);
+			}
 			songs.push(song);
 		}
 	}
@@ -166,7 +173,7 @@ function doDisplayDiff(username) {
 
 	var table = $('<table>').addClass('table');
 
-	var title = ['레벨', '곡명', '난이도', '#노트', '점수', '-평균', '플카'];
+	var title = ['레벨', '곡명', '난이도', '#노트', '점수', '-평균', '플카', '-EXC 비율(%)'];
 	$('<tr>').html(title.map(function(elem){return '<th>'+elem+'</th>';}).join('')).appendTo(table);
 	for( var i in songs ) {
 		var song = songs[i];
@@ -177,7 +184,8 @@ function doDisplayDiff(username) {
 			song.notes,
 			song.data.score,
 			song.data_diff.score,
-			song.data.play_count
+			song.data.play_count,
+			song.data_diff.score_to_excellent_ratio
 			];
 
 
