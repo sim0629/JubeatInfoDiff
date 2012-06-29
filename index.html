@@ -58,11 +58,11 @@
 						<option value="notes">노트 수</option>
 						<option value="score">점수</option>
 						<option value="playcount">플레이 횟수</option>
-						<option value="diff" selected>평균과의 차이</option>
-						<option value="diffratio">평균과의 엑설런트까지의 점수 비율</option>
+						<option value="diff">평균과의 차이</option>
+						<option value="diffratio" selected>평균과의 엑설런트까지의 점수 비율</option>
 					</select>
-					<label class="radio"><input type="radio" value="asc" name="sort" checked />오름차순</label>
-					<label class="radio"><input type="radio" value="desc" name="sort" />내림차순</label>
+					<label class="radio"><input type="radio" value="asc" name="sort" />오름차순</label>
+					<label class="radio"><input type="radio" value="desc" name="sort" checked />내림차순</label>
 				</div>
 			</div>
 
@@ -126,7 +126,7 @@ $.infodiff = {};
 $.infodiff.busy = false;
 $.infodiff.score = new Array();
 $.infodiff.selectableOptions = options;
-$.infodiff.options = {sort:{field:"diff",order:'asc'},diff:'all',limit:20,hide_exc:true};
+$.infodiff.options = {sort:{field:"diffratio",order:'desc'},diff:'all',limit:20,hide_exc:true};
 $.infodiff.username = 'shonen.a';
 
 function doDisplayDiff(username) {
@@ -254,6 +254,7 @@ function filterDifficulty(dif) {
 $(function() {
 	$('#jbtinfoID').keydown(function(evt) {
 		if( evt.which == 13 ) {
+			evt.preventDefault();
 			displayDiff($(this).val());
 		}
 	});
