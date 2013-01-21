@@ -264,6 +264,11 @@ $(function() {
         }
     });
 
+    window.onhashchange = function() {
+        extractHash(window);
+        displayDiff(window.user);
+    };
+
     $('.options').hide();
 
     extractHash(window);
